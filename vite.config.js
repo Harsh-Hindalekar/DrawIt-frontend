@@ -13,8 +13,8 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
-      // Auth and user routes
-      '/login': {
+      // Auth and user routes - commented out to avoid conflict with React routes
+      /* '/login': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
@@ -23,7 +23,7 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
-      },
+      }, */
       '/user': {
         target: 'http://localhost:8000',
         changeOrigin: true,

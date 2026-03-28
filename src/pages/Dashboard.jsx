@@ -1,105 +1,98 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { getProfile } from "../utils/api";
-import "./Dashboard.css";
+import { useNavigate } from 'react-router-dom';
+import PageTransition from '../components/layout/PageTransition';
+import { useProjectsStore } from '../store/useProjectsStore';
+import { useAuthStore } from '../store/useAuthStore';
+import { Plus, Edit3, Film } from 'lucide-react';
 
-// Put these images in: src/assets/dashboard/
-import settingIco from "../assets/setting.png";
-
-import airImg from "../assets/air1.png";
-import smartImg from "../assets/smart.png";
-import flipImg from "../assets/flip.png";
-
-export default function Dashboard() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+const Dashboard = () => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    async function fetchProfile() {
-      try {
-        const res = await getProfile();
-
-        if (res?.email) {
-          setUser(res);
-        } else {
-          throw new Error("Invalid token");
-        }
-      } catch (err) {
-        console.error("Profile fetch failed:", err);
-        localStorage.removeItem("token");
-        navigate("/login");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchProfile();
-  }, [navigate]);
-
-  if (loading) return <p style={{ padding: 24 }}>Loading...</p>;
+  const projects = useProjectsStore(s => s.projects);
+  const user = useAuthStore(s => s.user);
 
   return (
-    <div className="dbWrap">
-      <div className="dbShell">
-        {/* Top Left - Setting */}
-        <Link to="/settings" className="dbTopLink dbLeft">
-          <div className="dbTopIcon">
-            <img src={settingIco} alt="Setting" />
-          </div>
-          <div className="dbTopText">Setting</div>
-        </Link>
+    <PageTransition>
+      <div className="p-8 max-w-7xl mx-auto space-y-12">
         
-        {/* Title Ribbon */}
-        <div className="dbTitleRow">
-          <div className="dbRibbon">
-            <span>Dashboard</span>
+        {/* Welcome Section */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Welcome back, {user?.username}!</h1>
+            <p className="text-slate-500">Ready to create your next masterpiece?</p>
           </div>
         </div>
 
-        {/* Tiles */}
-        <div className="dbTiles">
-          <Link to="/webcam-drawing" className="dbTile tAir">
-            <div className="dbTileImg">
-              <img src={airImg} alt="Air drawing" />
-            </div>
-            <div className="dbTileLabel">Air drawing</div>
-          </Link>
-
-          <Link to="/ai-drawing" className="dbTile tSmart">
-            <div className="dbTileImg">
-              <img src={smartImg} alt="Smart canva" />
-            </div>
-            <div className="dbTileLabel light">Smart canva</div>
-          </Link>
-
-          <Link to="/flipbook" className="dbTile tFlip">
-            <div className="dbTileImg">
-              <img src={flipImg} alt="Flipabook" />
-            </div>
-            <div className="dbTileLabel">Flipabook</div>
-          </Link>
-        </div>
-
-        {/* Bottom Buttons */}
-        <div className="dbBottomBtns">
-          <Link to="/about" className="dbBtn">ABOUT US</Link>
-          <Link to="/help" className="dbBtn">HELP</Link>
-        </div>
-
-        {/* Logout (kept, minimal) */}
-        {user ? (
-          <button
-            className="dbLogout"
-            onClick={() => {
-              localStorage.removeItem("token");
-              navigate("/login");
-            }}
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <button 
+            onClick={() => navigate('/draw')}
+            className="glass-panel p-8 flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:bg-darkCard transition-all group cursor-pointer"
           >
-            Logout
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Edit3 size={32} className="text-primary-light" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-slate-800">New Drawing</h3>
+              <p className="text-slate-500 text-sm mt-1">Start with a blank canvas</p>
+            </div>
           </button>
-        ) : null}
+          
+          <button 
+            onClick={() => navigate('/flipbook')}
+            className="glass-panel p-8 flex flex-col items-center justify-center gap-4 hover:border-secondary/50 hover:bg-darkCard transition-all group cursor-pointer"
+          >
+            <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Film size={32} className="text-secondary-light" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-slate-800">New Flipbook</h3>
+              <p className="text-slate-500 text-sm mt-1">Create frame-by-frame animation</p>
+            </div>
+          </button>
+        </div>
+
+        {/* Recent Projects */}
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Film className="text-primary-light" /> Recent Projects
+            </h2>
+            <button className="text-sm text-slate-500 hover:text-slate-900" onClick={() => navigate('/gallery')}>View All</button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {projects.map(project => (
+              <div key={project.id} className="glass-panel overflow-hidden group hover:border-slate-300 transition-colors cursor-pointer">
+                <div className="aspect-video bg-slate-100 flex items-center justify-center relative">
+                  {project.thumbnail ? (
+                    <img src={project.thumbnail} alt={project.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-gray-600">No thumbnail</span>
+                  )}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <button className="btn-primary rounded-full px-6">Open</button>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-lg">{project.title}</h3>
+                  <div className="flex justify-between mt-2 text-sm text-slate-500">
+                    <span>{project.frames} frames</span>
+                    <span>{project.date}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Create New Card */}
+            <div onClick={() => navigate('/flipbook')} className="glass-panel flex flex-col items-center justify-center aspect-video sm:aspect-auto border-dashed border-2 border-slate-200 hover:border-primary/50 hover:bg-darkCard/50 cursor-pointer transition-all">
+              <Plus size={32} className="text-slate-500 mb-2" />
+              <span className="font-medium text-slate-500">Create Project</span>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </PageTransition>
   );
-}
+};
+
+export default Dashboard;
