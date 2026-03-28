@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import PageTransition from '../components/layout/PageTransition';
 import { useProjectsStore } from '../store/useProjectsStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { Plus, Edit3, Film } from 'lucide-react';
+import { Plus, Edit3, Film, Sparkles } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button 
             onClick={() => navigate('/draw')}
             className="glass-panel p-8 flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:bg-darkCard transition-all group cursor-pointer"
@@ -46,6 +46,19 @@ const Dashboard = () => {
             <div className="text-center">
               <h3 className="text-xl font-bold text-slate-800">New Flipbook</h3>
               <p className="text-slate-500 text-sm mt-1">Create frame-by-frame animation</p>
+            </div>
+          </button>
+
+          <button 
+            onClick={() => navigate('/ai-drawing')}
+            className="glass-panel p-8 flex flex-col items-center justify-center gap-4 hover:border-purple-500/50 hover:bg-darkCard transition-all group cursor-pointer"
+          >
+            <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Sparkles size={32} className="text-purple-600" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-slate-800">AI Drawing</h3>
+              <p className="text-slate-500 text-sm mt-1">Draw with auto-shapes & AI</p>
             </div>
           </button>
         </div>

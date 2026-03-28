@@ -8,6 +8,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import DrawingEditor from './pages/DrawingEditor';
 import FlipbookEditor from './pages/FlipbookEditor';
+import AiDrawing from './features/ai-drawing/AiDrawing';
 import { Gallery, Community, Settings } from './pages/OtherPages';
 import Layout from './components/layout/Layout';
 
@@ -44,6 +45,11 @@ function App() {
         <Route path="/flipbook" element={
           <ProtectedRoute>
             <FlipbookEditor />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-drawing" element={
+          <ProtectedRoute>
+            <AiDrawing />
           </ProtectedRoute>
         } />
         

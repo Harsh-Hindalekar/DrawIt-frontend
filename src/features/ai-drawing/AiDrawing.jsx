@@ -710,152 +710,124 @@ export default function AiDrawing() {
           ? "text"
           : "default";
 
-  /* ---------------- UI (simple paint-like) ---------------- */
-  const btnStyle = {
-    background: "#fff",
-    color: "#1e293b",
-    border: "1px solid #d1d5db",
-    borderRadius: "6px",
-    padding: "4px 12px",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "500",
-    display: "flex",
-    alignItems: "center",
-    gap: "4px"
-  };
-
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "12px",
-      background: "#f1f5f9",
-      boxSizing: "border-box",
-      color: "#1e293b"
-    }}>
-      <div style={{ width: "100%", maxWidth: "1200px" }}>
+    <div className="min-h-screen w-full flex flex-col items-center bg-slate-50 text-slate-800 p-4">
+      <div className="w-full max-w-6xl">
         {/* Top bar */}
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            alignItems: "center",
-            padding: "6px 8px",
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            marginBottom: 8,
-            background: "#f8fafc",
-          }}
-        >
-          <b style={{ marginRight: 10, color: "#0f172a" }}>SmartCanvas</b>
+        <div className="glass-panel flex flex-wrap items-center gap-3 p-3 mb-4 sticky top-4 z-50">
+          <b className="mr-2 text-primary-dark font-bold whitespace-nowrap"><span className="text-xl">✨</span> SmartCanvas</b>
 
-          <button style={btnStyle} onClick={undo}>Undo</button>
-          <button style={btnStyle} onClick={redo}>Redo</button>
+          <button className="btn-secondary text-xs py-1.5 px-3" onClick={undo}>Undo</button>
+          <button className="btn-secondary text-xs py-1.5 px-3" onClick={redo}>Redo</button>
 
-          <div style={{ width: 1, height: 22, background: "#ddd" }} />
+          <div className="w-px h-6 bg-slate-200 mx-1" />
 
-          <button style={btnStyle} onClick={() => setAiMode((v) => !v)}>AI {aiMode ? "ON" : "OFF"}</button>
+          <button className={`text-xs py-1.5 px-3 rounded-lg font-medium transition-colors ${aiMode ? 'bg-primary text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`} onClick={() => setAiMode((v) => !v)}>
+            AI {aiMode ? "ON" : "OFF"}
+          </button>
 
-          <div style={{ width: 1, height: 22, background: "#ddd" }} />
+          <div className="w-px h-6 bg-slate-200 mx-1" />
 
-          <button style={{ ...btnStyle, opacity: selectedId ? 1 : 0.5 }} onClick={bringFront} disabled={!selectedId}>
+          <button className="btn-secondary text-xs py-1.5 px-3 disabled:opacity-50" onClick={bringFront} disabled={!selectedId}>
             Bring Front
           </button>
-          <button style={{ ...btnStyle, opacity: selectedId ? 1 : 0.5 }} onClick={sendBack} disabled={!selectedId}>
+          <button className="btn-secondary text-xs py-1.5 px-3 disabled:opacity-50" onClick={sendBack} disabled={!selectedId}>
             Send Back
           </button>
-          <button style={{ ...btnStyle, opacity: selectedId ? 1 : 0.5 }} onClick={deleteSelected} disabled={!selectedId}>
+          <button className="btn-secondary text-xs py-1.5 px-3 text-red-600 disabled:opacity-50" onClick={deleteSelected} disabled={!selectedId}>
             Delete
           </button>
 
-          <div style={{ flex: 1 }} />
+          <div className="flex-1" />
 
-          <label style={{ border: "1px solid #999", padding: "4px 8px", cursor: "pointer", borderRadius: 6, color: "#1e293b" }}>
+          <label className="btn-secondary text-xs py-1.5 px-3 cursor-pointer">
             Import Image
             <input
               type="file"
               accept="image/*"
-              style={{ display: "none" }}
+              className="hidden"
               onChange={(e) => onImportImage(e.target.files?.[0])}
             />
           </label>
 
-          <button style={btnStyle} onClick={savePNG}>Save PNG</button>
+          <button className="btn-primary text-xs py-1.5 px-3" onClick={savePNG}>Save PNG</button>
           <button
-            style={{ ...btnStyle, background: "#fff1f2", color: "#be123c", borderColor: "#fecaca" }}
+            className="text-xs py-1.5 px-3 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg transition-colors font-medium ml-2"
             onClick={() => {
               if (textEditor) commitTextEditor();
               commit([]);
               setSelectedId(null);
             }}
           >
-            Clear
+            Clear All
           </button>
         </div>
 
         {/* Main area */}
-        <div style={{ display: "flex", gap: 10 }}>
-          {/* Left tool rail */}
-          <div
-            style={{
-              width: 100,
-              border: "1px solid #ddd",
-              borderRadius: 8,
-              background: "#fff",
-              padding: 6,
-              height: CANVAS_H + 2,
-            }}
-          >
-            <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Tools</div>
-
+        <div className="flex gap-4 items-start relative">
+          {/* Tools panel */}
+          <div className="flex flex-col gap-3 glass-panel p-3">
             {[
-              ["pencil", "Pencil"],
-              ["marker", "Marker"],
-              ["highlighter", "Highlighter"],
-              ["brush", "Brush"],
-              ["eraser", "Eraser"],
-              ["text", "Text"],
-            ].map(([k, label]) => (
+              { id: "pencil", label: "Pencil" },
+              { id: "marker", label: "Marker" },
+              { id: "highlighter", label: "Highlight" },
+              { id: "brush", label: "Brush" },
+              { id: "eraser", label: "Eraser" },
+              { id: "text", label: "Text" },
+            ].map((t) => (
               <button
-                key={k}
-                onClick={() => setTool(k)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "8px 10px",
-                  marginBottom: 6,
-                  borderRadius: 8,
-                  border: "1px solid #e5e7eb",
-                  background: tool === k ? "#e0f2fe" : "#fff",
-                  color: "#1e293b",
-                  cursor: "pointer",
+                key={t.id}
+                className={`text-sm py-2 px-3 rounded-lg font-medium transition-all text-left ${tool === t.id ? 'bg-primary text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'}`}
+                onClick={() => {
+                  setTool(t.id);
+                  setSelectedId(null);
                 }}
               >
-                {label}
+                {t.label}
               </button>
             ))}
 
-            <div style={{ marginTop: 10, fontSize: 12, color: "#555" }}>Tip</div>
-            <div style={{ fontSize: 12, color: "#777", marginTop: 4, lineHeight: 1.35 }}>
-              Click object to select.
-              <br />
-              Drag to move.
-              <br />
-              Square = resize.
-              <br />
-              Circle = rotate.
+            <div className="w-full h-px bg-slate-200 my-2" />
+
+            <div className="flex flex-col items-center gap-2">
+              {["#000000", "#ef4444", "#3b82f6", "#22c55e", "#f59e0b", "#a855f7"].map((c) => (
+                <div
+                  key={c}
+                  className={`w-6 h-6 rounded-full cursor-pointer transition-transform hover:scale-110 ${color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'ring-1 ring-slate-200'}`}
+                  style={{ background: c }}
+                  onClick={() => setColor(c)}
+                />
+              ))}
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-7 h-7 mt-1 border-0 bg-transparent cursor-pointer rounded-full overflow-hidden p-0"
+              />
+            </div>
+
+            <div className="w-full h-px bg-slate-200 my-2" />
+            
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-[10px] text-slate-500 font-medium tracking-wide uppercase">SIZE</span>
+              <input
+                type="range"
+                min="1"
+                max="20"
+                value={size}
+                onChange={(e) => setSize(Number(e.target.value))}
+                className="w-12 accent-primary"
+              />
             </div>
           </div>
 
-          {/* Canvas + overlay */}
-          <div style={{ position: "relative" }}>
+          {/* Canvas container */}
+          <div className="relative shadow-xl border border-slate-200 rounded-xl overflow-hidden bg-white">
             <canvas
               ref={canvasRef}
-              style={{ border: "2px solid black", cursor, background: "#fff" }}
+              style={{ cursor, background: "#fff" }}
+              width={CANVAS_W}
+              height={CANVAS_H}
               onMouseDown={onDown}
               onMouseMove={onMove}
               onMouseUp={onUp}
@@ -875,78 +847,75 @@ export default function AiDrawing() {
               }}
             />
 
-            {/* Canva-like text editor overlay */}
+            {/* Text Editor Overlay */}
             {textEditor && (
-              <textarea
-                autoFocus
-                value={textEditor.value}
-                onChange={(e) => setTextEditor((t) => ({ ...t, value: e.target.value }))}
-                onBlur={commitTextEditor}
+              <div
+                className="absolute glass-panel p-3 flex flex-col gap-3 z-50 shadow-2xl min-w-[250px]"
                 style={{
-                  position: "absolute",
-                  left: textEditor.x,
-                  top: textEditor.y - (textEditor.fontSize || 28),
-                  minWidth: 180,
-                  minHeight: 50,
-                  padding: 6,
-                  resize: "both",
-                  border: "2px solid #2563eb",
-                  outline: "none",
-                  fontSize: textEditor.fontSize || 28,
-                  fontFamily: textEditor.fontFamily || "Arial",
-                  color: textEditor.color || "#000",
-                  background: "rgba(255,255,255,0.95)",
+                  left: Math.min(textEditor.x + 20, CANVAS_W - 250),
+                  top: Math.min(textEditor.y, CANVAS_H - 120),
                 }}
-                placeholder="Type here..."
-              />
-            )}
-          </div>
+              >
+                <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                  <select
+                    value={textEditor.fontFamily}
+                    onChange={(e) => setTextEditor({ ...textEditor, fontFamily: e.target.value })}
+                    className="input-field py-1 px-2 text-sm bg-white"
+                  >
+                    <option>Arial</option>
+                    <option>Times New Roman</option>
+                    <option>Courier New</option>
+                    <option>Georgia</option>
+                    <option>Verdana</option>
+                    <option>Trebuchet MS</option>
+                    <option>Comic Sans MS</option>
+                    <option>Impact</option>
+                    <option>system-ui</option>
+                  </select>
+                  <input
+                    type="number"
+                    value={textEditor.fontSize}
+                    onChange={(e) => setTextEditor({ ...textEditor, fontSize: Number(e.target.value) })}
+                    className="input-field w-16 py-1 px-2 text-sm bg-white"
+                  />
+                  <input
+                    type="color"
+                    value={textEditor.color}
+                    onChange={(e) => setTextEditor({ ...textEditor, color: e.target.value })}
+                    className="w-6 h-6 border-0 p-0 rounded cursor-pointer"
+                  />
+                </div>
 
-          {/* Right panel */}
-          <div
-            style={{
-              width: 180,
-              border: "1px solid #ddd",
-              borderRadius: 8,
-              background: "#fff",
-              padding: 8,
-              height: CANVAS_H + 2,
-            }}
-          >
-            <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Settings</div>
-
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 12, marginBottom: 6 }}>Color</div>
-              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
-            </div>
-
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 12, marginBottom: 6 }}>Size</div>
-              <input type="range" min="1" max="30" value={size} onChange={(e) => setSize(+e.target.value)} />
-              <div style={{ fontSize: 12, color: "#666" }}>{size}px</div>
-            </div>
-
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 12, marginBottom: 6 }}>AI Mode</div>
-              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.35 }}>
-                AI affects <b>shapes</b> when drawing with pen tools.
-                <br />
-                Eraser/Text are not AI.
+                <textarea
+                  autoFocus
+                  className="w-full min-h-[80px] input-field resize-none bg-white p-2 font-medium"
+                  style={{
+                    fontSize: "14px", // ui font
+                    fontFamily: textEditor.fontFamily,
+                    color: textEditor.color,
+                  }}
+                  value={textEditor.value}
+                  onChange={(e) => setTextEditor({ ...textEditor, value: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      commitTextEditor();
+                    }
+                  }}
+                />
+                <div className="flex justify-end gap-2">
+                  <button className="btn-secondary py-1 px-4" onClick={() => setTextEditor(null)}>
+                    Cancel
+                  </button>
+                  <button className="btn-primary py-1 px-4" onClick={commitTextEditor}>
+                    Done
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <div style={{ fontSize: 12, color: "#666", marginTop: 12 }}>
-              Shortcuts:
-              <br />
-              Ctrl+Z / Ctrl+Y
-              <br />
-              Delete to remove
-              <br />
-              Enter to finish text
-            </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
-}
+};

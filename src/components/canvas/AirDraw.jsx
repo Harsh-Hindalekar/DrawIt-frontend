@@ -12,119 +12,111 @@ const AirDraw = ({ onClose }) => {
   
   const [isReady, setIsReady] = useState(false);
   const isDrawingRef = useRef(false);
+  const cameraRef = useRef(null);
+  const handsRef = useRef(null);
 
-  useEffect(() => {
-    let camera = null;
-    let hands = null;
+  const initializeMediaPipe = async () => {
+    if (!webcamRef.current?.video || cameraRef.current) return;
+    
+    try {
+      handsRef.current = new Hands({
+        locateFile: (file) => {
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`;
+        }
+      });
 
-    const initializeMediaPipe = async () => {
-      try {
-        hands = new Hands({
-          locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@${VERSION}/${file}`;
-          }
-        });
+      handsRef.current.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7
+      });
 
-        hands.setOptions({
-          maxNumHands: 1,
-          modelComplexity: 1,
-          minDetectionConfidence: 0.7,
-          minTrackingConfidence: 0.7
-        });
+      handsRef.current.onResults((results) => {
+        if (!canvasRef.current || !webcamRef.current?.video) return;
+        
+        const videoWidth = webcamRef.current.video.videoWidth;
+        const videoHeight = webcamRef.current.video.videoHeight;
+        canvasRef.current.width = videoWidth;
+        canvasRef.current.height = videoHeight;
+        
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.save();
+        ctx.clearRect(0, 0, videoWidth, videoHeight);
+        
+        ctx.translate(videoWidth, 0);
+        ctx.scale(-1, 1);
 
-        hands.onResults((results) => {
-          if (!canvasRef.current || !webcamRef.current?.video) return;
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+          const landmarks = results.multiHandLandmarks[0];
           
-          const videoWidth = webcamRef.current.video.videoWidth;
-          const videoHeight = webcamRef.current.video.videoHeight;
-          canvasRef.current.width = videoWidth;
-          canvasRef.current.height = videoHeight;
+          ctx.fillStyle = "#a855f7"; 
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
           
-          const ctx = canvasRef.current.getContext('2d');
-          ctx.save();
-          ctx.clearRect(0, 0, videoWidth, videoHeight);
+          const indexTip = landmarks[8];
+          const thumbTip = landmarks[4];
           
-          // Reverse the canvas context locally because webcam is mirrored
-          ctx.translate(videoWidth, 0);
-          ctx.scale(-1, 1);
+          ctx.beginPath();
+          ctx.arc(indexTip.x * videoWidth, indexTip.y * videoHeight, 6, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.stroke();
 
-          if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-            const landmarks = results.multiHandLandmarks[0];
-            
-            // Draw skeleton on PIP canvas
-            ctx.fillStyle = "#a855f7"; // primary color
-            ctx.strokeStyle = "#ffffff";
-            ctx.lineWidth = 2;
-            
-            // Draw index point
-            const indexTip = landmarks[8];
-            const thumbTip = landmarks[4];
-            
-            ctx.beginPath();
-            ctx.arc(indexTip.x * videoWidth, indexTip.y * videoHeight, 6, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.stroke();
+          const distance = Math.sqrt(
+            Math.pow(indexTip.x - thumbTip.x, 2) + Math.pow(indexTip.y - thumbTip.y, 2)
+          );
+          
+          const isPinching = distance < 0.05;
 
-            // Calculate pinch distance
-            const distance = Math.sqrt(
-              Math.pow(indexTip.x - thumbTip.x, 2) + Math.pow(indexTip.y - thumbTip.y, 2)
-            );
-            
-            // Pinch threshold
-            const isPinching = distance < 0.05;
+          const mappedX = 1 - indexTip.x; 
+          const mappedY = indexTip.y;
 
-            // Invert X because camera is mirrored natively, so user's right naturally maps to screen right
-            const mappedX = 1 - indexTip.x; 
-            const mappedY = indexTip.y;
-
-            if (isPinching) {
-              if (!isDrawingRef.current) {
-                isDrawingRef.current = true;
-                setAirDrawEvent({ x: mappedX, y: mappedY, type: 'down' });
-              } else {
-                setAirDrawEvent({ x: mappedX, y: mappedY, type: 'move' });
-              }
+          if (isPinching) {
+            if (!isDrawingRef.current) {
+              isDrawingRef.current = true;
+              setAirDrawEvent({ x: mappedX, y: mappedY, type: 'down' });
             } else {
-              if (isDrawingRef.current) {
-                isDrawingRef.current = false;
-                setAirDrawEvent({ x: mappedX, y: mappedY, type: 'up' });
-              } else {
-                // Keep passing move events so we can show a cursor if we want, or do nothing.
-                setAirDrawEvent({ x: mappedX, y: mappedY, type: 'hover' });
-              }
+              setAirDrawEvent({ x: mappedX, y: mappedY, type: 'move' });
             }
           } else {
             if (isDrawingRef.current) {
               isDrawingRef.current = false;
-              setAirDrawEvent({ x: 0, y: 0, type: 'up' });
+              setAirDrawEvent({ x: mappedX, y: mappedY, type: 'up' });
+            } else {
+              setAirDrawEvent({ x: mappedX, y: mappedY, type: 'hover' });
             }
           }
-          ctx.restore();
-        });
-
-        if (webcamRef.current?.video) {
-          camera = new Camera(webcamRef.current.video, {
-            onFrame: async () => {
-              if (webcamRef.current?.video) {
-                await hands.send({ image: webcamRef.current.video });
-              }
-            },
-            width: 320,
-            height: 240
-          });
-          camera.start().then(() => setIsReady(true));
+        } else {
+          if (isDrawingRef.current) {
+            isDrawingRef.current = false;
+            setAirDrawEvent({ x: 0, y: 0, type: 'up' });
+          }
         }
-      } catch (err) {
-        console.error("Hands initialization error", err);
+        ctx.restore();
+      });
+
+      if (webcamRef.current?.video) {
+        cameraRef.current = new Camera(webcamRef.current.video, {
+          onFrame: async () => {
+            if (webcamRef.current?.video && handsRef.current) {
+              await handsRef.current.send({ image: webcamRef.current.video });
+            }
+          },
+          width: 320,
+          height: 240
+        });
+        cameraRef.current.start().then(() => setIsReady(true));
       }
-    };
-
-    // Need a tiny timeout to ensure video element is rendered
-    setTimeout(initializeMediaPipe, 1000);
-
+    } catch (err) {
+      console.error("Hands initialization error", err);
+    }
+  };
+    
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
-      if (camera) camera.stop();
-      if (hands) hands.close();
+      if (cameraRef.current) cameraRef.current.stop();
+      if (handsRef.current) handsRef.current.close();
       setAirDrawEvent(null);
     };
   }, [setAirDrawEvent]);
@@ -151,6 +143,8 @@ const AirDraw = ({ onClose }) => {
           mirrored={true}
           audio={false}
           videoConstraints={{ facingMode: 'user', width: 320, height: 240 }}
+          onUserMedia={initializeMediaPipe}
+          onUserMediaError={(err) => console.error("Webcam Error:", err)}
         />
         <canvas 
           ref={canvasRef}

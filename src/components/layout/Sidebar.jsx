@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Image as ImageIcon, Users, Settings } from 'lucide-react';
+import { Home, Image as ImageIcon, Users, Settings, Sparkles } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
