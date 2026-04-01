@@ -3,9 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { getProfile } from "../utils/api";
 import "./Dashboard.css";
 
-// Put these images in: src/assets/dashboard/
-import settingIco from "../assets/setting.png";
-
 import airImg from "../assets/air1.png";
 import smartImg from "../assets/smart.png";
 import flipImg from "../assets/flip.png";
@@ -40,66 +37,45 @@ export default function Dashboard() {
   if (loading) return <p style={{ padding: 24 }}>Loading...</p>;
 
   return (
-    <div className="dbWrap">
-      <div className="dbShell">
-        {/* Top Left - Setting */}
-        <Link to="/settings" className="dbTopLink dbLeft">
-          <div className="dbTopIcon">
-            <img src={settingIco} alt="Setting" />
-          </div>
-          <div className="dbTopText">Setting</div>
-        </Link>
-        
-        {/* Title Ribbon */}
-        <div className="dbTitleRow">
-          <div className="dbRibbon">
-            <span>Dashboard</span>
-          </div>
-        </div>
+    <div className="dashboard-root">
+      <aside className="dashboard-sidebar">
+        <div className="ds-brand">DrawIt</div>
+        <nav className="ds-nav">
+          <Link to="/dashboard" className="ds-link active">Dashboard</Link>
+          <Link to="/webcam-drawing" className="ds-link">New Drawing</Link>
+          <Link to="/flipbook" className="ds-link">New Flipbook</Link>
+          <Link to="/ai-drawing" className="ds-link">AI Drawing</Link>
+        </nav>
+      </aside>
 
-        {/* Tiles */}
-        <div className="dbTiles">
-          <Link to="/webcam-drawing" className="dbTile tAir">
-            <div className="dbTileImg">
-              <img src={airImg} alt="Air drawing" />
-            </div>
-            <div className="dbTileLabel">Air drawing</div>
+      <main className="dashboard-main">
+        <header className="dm-header">
+          <h1>Welcome back, Artist!</h1>
+          <p className="dm-sub">Ready to create your next masterpiece?</p>
+        </header>
+
+        <section className="dm-cards">
+          <Link to="/webcam-drawing" className="dm-card">
+            <div className="dm-icon"><img src={airImg} alt="Air"/></div>
+            <h3>New Drawing</h3>
+            <p>Start with a blank canvas</p>
           </Link>
 
-          <Link to="/ai-drawing" className="dbTile tSmart">
-            <div className="dbTileImg">
-              <img src={smartImg} alt="Smart canva" />
-            </div>
-            <div className="dbTileLabel light">Smart canva</div>
+          <Link to="/flipbook" className="dm-card">
+            <div className="dm-icon"><img src={flipImg} alt="Flip"/></div>
+            <h3>New Flipbook</h3>
+            <p>Create frame-by-frame animation</p>
           </Link>
 
-          <Link to="/flipbook" className="dbTile tFlip">
-            <div className="dbTileImg">
-              <img src={flipImg} alt="Flipabook" />
-            </div>
-            <div className="dbTileLabel">Flipabook</div>
+          <Link to="/ai-drawing" className="dm-card">
+            <div className="dm-icon"><img src={smartImg} alt="AI"/></div>
+            <h3>AI Drawing</h3>
+            <p>Draw with auto-shapes & AI</p>
           </Link>
-        </div>
+        </section>
 
-        {/* Bottom Buttons */}
-        <div className="dbBottomBtns">
-          <Link to="/about" className="dbBtn">ABOUT US</Link>
-          <Link to="/help" className="dbBtn">HELP</Link>
-        </div>
 
-        {/* Logout (kept, minimal) */}
-        {user ? (
-          <button
-            className="dbLogout"
-            onClick={() => {
-              localStorage.removeItem("token");
-              navigate("/login");
-            }}
-          >
-            Logout
-          </button>
-        ) : null}
-      </div>
+      </main>
     </div>
   );
 }

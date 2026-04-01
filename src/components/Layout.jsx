@@ -13,7 +13,6 @@ export default function Layout({ children }) {
       <header style={{ marginBottom: "20px", borderBottom: "1px solid #ccc", paddingBottom: "10px" }}>
         <nav style={{ display: "flex", gap: "15px" }}>
           <Link to="/dashboard">Dashboard</Link>
-          <Link to="/profile">Profile</Link>
           <Link to="/webcam-drawing">🎨 Webcam Drawing</Link>
           <Link to="/ai-drawing">🤖 AI Drawing</Link>
           <Link to="/flipbook">📖 Flipbook</Link>

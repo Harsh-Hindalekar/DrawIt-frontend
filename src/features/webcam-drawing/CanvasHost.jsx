@@ -90,6 +90,28 @@ export default function GestureCanvas() {
 
   const getCtx = (ref) => ref.current?.getContext("2d");
 
+  // Clear full backing store (resets transforms to ensure full clear)
+  function clearCanvasFull(ctx, canvas) {
+    try {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    } finally {
+      ctx.restore();
+    }
+  }
+
+  // Resize canvas for DPR and keep drawing coordinates in CSS pixels
+  function resizeForDPR(canvas, cssWidth, cssHeight) {
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${cssHeight}px`;
+    canvas.width = Math.round(cssWidth * dpr);
+    canvas.height = Math.round(cssHeight * dpr);
+    const ctx = canvas.getContext("2d");
+    if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
   function saveDrawing() {
     const c = drawCanvasRef.current;
     if (!c) return;
@@ -103,7 +125,7 @@ export default function GestureCanvas() {
     const c = drawCanvasRef.current;
     if (!c) return;
     const ctx = c.getContext("2d");
-    ctx.clearRect(0, 0, c.width, c.height);
+    if (ctx) clearCanvasFull(ctx, c);
     prevPosRef.current = null;
   }
 
@@ -122,8 +144,8 @@ export default function GestureCanvas() {
     const overlayCtx = getCtx(overlayCanvasRef);
     if (!drawCtx || !overlayCtx) return;
 
-    // clear overlay
-    overlayCtx.clearRect(0, 0, overlayC.width, overlayC.height);
+    // clear overlay (backing-store aware)
+    clearCanvasFull(overlayCtx, overlayC);
 
     // draw skeleton
     drawConnectors(overlayCtx, landmarks, HAND_CONNECTIONS, { color: "#22c55e", lineWidth: 2 });
@@ -142,15 +164,17 @@ export default function GestureCanvas() {
     const isPeace = indexExtended && middleExtended && !ringExtended && !pinkyExtended;
     const isPointing = indexExtended && !middleExtended;
 
-    // coords (normalized -> pixels)
-    const w = drawC.width;
-    const h = drawC.height;
+    // coords (normalized -> CSS pixels)
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const w = drawC.clientWidth || Math.round(drawC.width / dpr);
+    const h = drawC.clientHeight || Math.round(drawC.height / dpr);
 
     const index = landmarks[tip.index];
     const thumb = landmarks[tip.thumb];
 
     // Smoothing logic (Exponential Smoothing)
-    const smoothing = 0.35; // lower = smoother but more lag
+    // tuned for responsiveness while reducing jitter
+    const smoothing = 0.22; // lower = smoother but more lag
     const lastPos = smoothPosRef.current || { x: index.x, y: index.y };
     const sx = lastPos.x + (index.x - lastPos.x) * smoothing;
     const sy = lastPos.y + (index.y - lastPos.y) * smoothing;
@@ -232,15 +256,27 @@ export default function GestureCanvas() {
         drawCtx.globalCompositeOperation = "source-over";
         drawCtx.strokeStyle = c;
       }
+      // ensure fill uses same style (for dots)
+      drawCtx.fillStyle = drawCtx.strokeStyle;
 
       const prev = prevPosRef.current;
-      drawCtx.beginPath();
+      // interpolate if movement is large to avoid visible jumps
       if (prev) {
+        const dx = ix - prev.x;
+        const dy = iy - prev.y;
+        const dist = Math.hypot(dx, dy);
+        const maxStep = Math.max(2, b * 1.2);
+        const steps = Math.min(16, Math.ceil(dist / maxStep));
+        drawCtx.beginPath();
         drawCtx.moveTo(prev.x, prev.y);
-        drawCtx.lineTo(ix, iy);
+        for (let i = 1; i <= steps; i++) {
+          const tseg = i / steps;
+          drawCtx.lineTo(prev.x + dx * tseg, prev.y + dy * tseg);
+        }
         drawCtx.stroke();
       } else {
         // Dot if just starting
+        drawCtx.beginPath();
         drawCtx.arc(ix, iy, b / 2, 0, Math.PI * 2);
         drawCtx.fill();
       }
@@ -261,16 +297,18 @@ export default function GestureCanvas() {
     const overlayC = overlayCanvasRef.current;
     if (!video || !drawC || !overlayC) return;
 
-    // responsive: fit container width, keep 4:3
+    // responsive: fit container width, keep 4:3 and support high-DPI
     const baseW = 960;
     const baseH = 720;
 
+    // Size video and canvases in CSS pixels then set backing store to DPR
     video.width = baseW;
     video.height = baseH;
-    drawC.width = baseW;
-    drawC.height = baseH;
-    overlayC.width = baseW;
-    overlayC.height = baseH;
+    video.style.width = `${baseW}px`;
+    video.style.height = `${baseH}px`;
+
+    resizeForDPR(drawC, baseW, baseH);
+    resizeForDPR(overlayC, baseW, baseH);
 
     const hands = new Hands({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
@@ -287,7 +325,8 @@ export default function GestureCanvas() {
       const overlayCtx = getCtx(overlayCanvasRef);
       if (!overlayCtx || !overlayC) return;
 
-      overlayCtx.clearRect(0, 0, overlayC.width, overlayC.height);
+      // clear full backing store to avoid ghosting across DPR
+      clearCanvasFull(overlayCtx, overlayC);
 
       const lm = results.multiHandLandmarks?.[0];
       if (lm) {

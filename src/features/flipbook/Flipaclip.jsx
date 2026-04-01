@@ -3,6 +3,7 @@ import Toolbar from "./components/Toolbar";
 import Timeline from "./components/Timeline";
 import CanvasStage from "./components/CanvasStage";
 import { blankFrame } from "./utils/thumbs";
+import "./Flipaclip.css";
 
 export default function Flipaclip() {
   const stageRef = useRef(null);   // visible canvas
@@ -40,71 +41,85 @@ export default function Flipaclip() {
   }, [playing, fps, frames.length]); // ✅ do NOT include activeIndex here
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "20px",
-      background: "#f1f5f9",
-      boxSizing: "border-box"
-    }}>
-      <div style={{ width: "100%", maxWidth: "1200px", display: "grid", gap: 12 }}>
-        <h2 style={{ margin: 0 }}>Smart-Canvas • Flipaclip Mode</h2>
+    <div className="fc-viewport">
+      <div className="fc-shell">
+        <aside className="fc-left">
+          <Toolbar
+            vertical
+            playing={playing}
+            toolMode={toolMode}
+            setToolMode={setToolMode}
+            brushTool={brushTool}
+            setBrushTool={setBrushTool}
+            color={color}
+            setColor={setColor}
+            size={size}
+            setSize={setSize}
+            onionSkin={onionSkin}
+            setOnionSkin={setOnionSkin}
+            onionOpacity={onionOpacity}
+            setOnionOpacity={setOnionOpacity}
+            fps={fps}
+            setFps={setFps}
+            setPlaying={setPlaying}
+            frames={frames}
+            activeIndex={activeIndex}
+            setFrames={setFrames}
+            setSelectedId={setSelectedId}
+          />
+        </aside>
 
-        <Toolbar
-          playing={playing}
-          toolMode={toolMode}
-          setToolMode={setToolMode}
-          brushTool={brushTool}
-          setBrushTool={setBrushTool}
-          color={color}
-          setColor={setColor}
-          size={size}
-          setSize={setSize}
-          onionSkin={onionSkin}
-          setOnionSkin={setOnionSkin}
-          onionOpacity={onionOpacity}
-          setOnionOpacity={setOnionOpacity}
-          fps={fps}
-          setFps={setFps}
-          setPlaying={setPlaying}
-          frames={frames}
-          activeIndex={activeIndex}
-          setFrames={setFrames}
-          setSelectedId={setSelectedId}
-        />
+        <main className="fc-main">
+          <div className="fc-topbar">
+            <div className="fc-title">Animation Project</div>
+            <div className="fc-controls">
+              <button onClick={() => setPlaying(p=>!p)}>{playing ? 'Pause' : 'Play'}</button>
+              <button onClick={() => setPlaying(false)}>Save</button>
+            </div>
+          </div>
 
-        <CanvasStage
-          stageRef={stageRef}
-          rasterRef={rasterRef}
-          frames={frames}
-          setFrames={setFrames}
-          activeIndex={activeIndex}
-          activeFrame={activeFrame}
-          prevFrame={prevFrame}
-          toolMode={toolMode}
-          brushTool={brushTool}
-          color={color}
-          size={size}
-          onionSkin={onionSkin}
-          onionOpacity={onionOpacity}
-          playing={playing}
-          selectedId={selectedId}
-          setSelectedId={setSelectedId}
-          setToolMode={setToolMode}
-        />
+          <div className="fc-stageRow">
+            <CanvasStage
+              stageRef={stageRef}
+              rasterRef={rasterRef}
+              frames={frames}
+              setFrames={setFrames}
+              activeIndex={activeIndex}
+              activeFrame={activeFrame}
+              prevFrame={prevFrame}
+              toolMode={toolMode}
+              brushTool={brushTool}
+              color={color}
+              size={size}
+              onionSkin={onionSkin}
+              onionOpacity={onionOpacity}
+              playing={playing}
+              selectedId={selectedId}
+              setSelectedId={setSelectedId}
+              setToolMode={setToolMode}
+            />
 
-        <Timeline
-          frames={frames}
-          activeIndex={activeIndex}
-          setActiveIndex={setActiveIndex}
-          setFrames={setFrames}
-          setPlaying={setPlaying}
-          setSelectedId={setSelectedId}
-          setToolMode={setToolMode}
-        />
+            <div className="fc-layers">
+              <div className="fc-layersCard">
+                <div className="fc-layersTitle">Layers</div>
+                <div className="fc-layer">Layer 1</div>
+                <div className="fc-layer">Background</div>
+              </div>
+            </div>
+          </div>
+
+          <footer className="fc-timeline">
+            <Timeline
+              frames={frames}
+              activeIndex={activeIndex}
+              setActiveIndex={setActiveIndex}
+              setFrames={setFrames}
+              setPlaying={setPlaying}
+              setSelectedId={setSelectedId}
+              setToolMode={setToolMode}
+            />
+          </footer>
+        </main>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { detectIntent } from "./intentAI";
 import { makeShape } from "./shapeFactory";
+import "./AiDrawing.css";
 
 export default function AiDrawing() {
   const canvasRef = useRef(null);
@@ -728,222 +729,106 @@ export default function AiDrawing() {
 
   /* ---------------- UI (simple paint-like) ---------------- */
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "20px",
-      background: "#f1f5f9",
-      boxSizing: "border-box"
-    }}>
-      <div style={{ width: "100%", maxWidth: "1200px" }}>
-        {/* Top bar */}
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            padding: "8px 10px",
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            marginBottom: 10,
-            background: "#f8fafc",
-          }}
-        >
-          <b style={{ marginRight: 10 }}>SmartCanvas</b>
+    <div className="ad-viewport">
+      <div className="ad-shell" style={{ maxWidth: 1200 }}>
+        {/* Topbar */}
+        <div className="ad-topbar">
+          <div className="ad-brand">SmartCanvas AI</div>
 
-          <button onClick={undo}>Undo</button>
-          <button onClick={redo}>Redo</button>
-
-          <div style={{ width: 1, height: 22, background: "#ddd" }} />
-
-          <button onClick={() => setAiMode((v) => !v)}>AI {aiMode ? "ON" : "OFF"}</button>
-
-          <div style={{ width: 1, height: 22, background: "#ddd" }} />
-
-          <button onClick={bringFront} disabled={!selectedId}>
-            Bring Front
-          </button>
-          <button onClick={sendBack} disabled={!selectedId}>
-            Send Back
-          </button>
-          <button onClick={deleteSelected} disabled={!selectedId}>
-            Delete
-          </button>
-
-          <div style={{ flex: 1 }} />
-
-          <label style={{ border: "1px solid #999", padding: "4px 8px", cursor: "pointer", borderRadius: 6 }}>
-            Import Image
-            <input
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={(e) => onImportImage(e.target.files?.[0])}
-            />
-          </label>
-
-          <button onClick={savePNG}>Save PNG</button>
-          <button
-            onClick={() => {
-              if (textEditor) commitTextEditor();
-              commit([]);
-              setSelectedId(null);
-            }}
-          >
-            Clear
-          </button>
-        </div>
-
-        {/* Main area */}
-        <div style={{ display: "flex", gap: 10 }}>
-          {/* Left tool rail */}
-          <div
-            style={{
-              width: 120,
-              border: "1px solid #ddd",
-              borderRadius: 8,
-              background: "#fff",
-              padding: 8,
-              height: CANVAS_H + 2,
-            }}
-          >
-            <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Tools</div>
-
-            {[
-              ["pencil", "Pencil"],
-              ["marker", "Marker"],
-              ["highlighter", "Highlighter"],
-              ["brush", "Brush"],
-              ["eraser", "Eraser"],
-              ["text", "Text"],
-            ].map(([k, label]) => (
-              <button
-                key={k}
-                onClick={() => setTool(k)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "8px 10px",
-                  marginBottom: 6,
-                  borderRadius: 8,
-                  border: "1px solid #e5e7eb",
-                  background: tool === k ? "#e0f2fe" : "#fff",
-                  cursor: "pointer",
-                }}
-              >
-                {label}
-              </button>
-            ))}
-
-            <div style={{ marginTop: 10, fontSize: 12, color: "#555" }}>Tip</div>
-            <div style={{ fontSize: 12, color: "#777", marginTop: 4, lineHeight: 1.35 }}>
-              Click object to select.
-              <br />
-              Drag to move.
-              <br />
-              Square = resize.
-              <br />
-              Circle = rotate.
-            </div>
+          <div className="ad-top-controls">
+            <button className="ad-btn" onClick={undo}>Undo</button>
+            <button className="ad-btn" onClick={redo}>Redo</button>
+            <div className="ad-sep" />
+            <button className={`ad-toggle ${aiMode ? 'on' : ''}`} onClick={() => setAiMode((v) => !v)}>AI {aiMode ? 'ON' : 'OFF'}</button>
+            <div className="ad-sep" />
+            <button className="ad-btn" onClick={bringFront} disabled={!selectedId}>Front</button>
+            <button className="ad-btn" onClick={sendBack} disabled={!selectedId}>Back</button>
+            <button className="ad-btn ad-danger" onClick={deleteSelected} disabled={!selectedId}>Delete</button>
           </div>
 
-          {/* Canvas + overlay */}
-          <div style={{ position: "relative" }}>
+          <div className="ad-right-actions">
+            <label className="ad-import">
+              Import Image
+              <input type="file" accept="image/*" onChange={(e) => onImportImage(e.target.files?.[0])} />
+            </label>
+            <button className="ad-primary" onClick={savePNG}>Save Canvas</button>
+          </div>
+        </div>
+
+        <div className="ad-main">
+          <aside className="ad-left" style={{ height: CANVAS_H + 2 }}>
+            <div className="ad-tools-title">Tools</div>
+            <div className="ad-tools">
+              {[['pencil','Pencil'],['marker','Marker'],['highlighter','Highlighter'],['brush','Brush'],['eraser','Eraser']].map(([k,label])=> (
+                <button key={k} className={`ad-tool ${tool===k? 'active':''}`} onClick={()=>setTool(k)}>{label}</button>
+              ))}
+            </div>
+
+            <div className="ad-divider" />
+
+            <div className="ad-swatches">
+              {['#000000','#ef4444','#2563eb','#10b981','#f59e0b','#a78bfa'].map((c)=> (
+                <button key={c} className="ad-swatch" style={{ background: c }} onClick={() => setColor(c)} />
+              ))}
+            </div>
+
+            <div className="ad-slider-wrap">
+              <input className="ad-slider" type="range" min="1" max="30" value={size} onChange={(e)=>setSize(+e.target.value)} />
+            </div>
+          </aside>
+
+          <div className="ad-canvasWrap" style={{ height: CANVAS_H }}>
             <canvas
               ref={canvasRef}
-              style={{ border: "2px solid black", cursor, background: "#fff" }}
+              className="ad-canvas"
+              style={{ cursor }}
               onMouseDown={onDown}
               onMouseMove={onMove}
               onMouseUp={onUp}
               onMouseLeave={onUp}
               onClick={(e) => {
-                // select by click (not when drawing/dragging)
-                if (drawing || actionRef.current || tool === "text") return;
+                if (drawing || actionRef.current || tool === 'text') return;
                 const p = getPos(e);
                 selectAt(p.x, p.y);
               }}
               onDoubleClick={(e) => {
                 const p = getPos(e);
                 const hit = hitTest(p.x, p.y);
-                if (hit && hit.type === "text") {
-                  openTextEditorFor(hit);
-                }
+                if (hit && hit.type === 'text') openTextEditorFor(hit);
               }}
             />
 
-            {/* Canva-like text editor overlay */}
             {textEditor && (
               <textarea
                 autoFocus
                 value={textEditor.value}
                 onChange={(e) => setTextEditor((t) => ({ ...t, value: e.target.value }))}
                 onBlur={commitTextEditor}
-                style={{
-                  position: "absolute",
-                  left: textEditor.x,
-                  top: textEditor.y - (textEditor.fontSize || 28),
-                  minWidth: 180,
-                  minHeight: 50,
-                  padding: 6,
-                  resize: "both",
-                  border: "2px solid #2563eb",
-                  outline: "none",
-                  fontSize: textEditor.fontSize || 28,
-                  fontFamily: textEditor.fontFamily || "Arial",
-                  color: textEditor.color || "#000",
-                  background: "rgba(255,255,255,0.95)",
-                }}
+                className="ad-textEditor"
+                style={{ left: textEditor.x, top: textEditor.y - (textEditor.fontSize || 28), fontSize: textEditor.fontSize || 28, fontFamily: textEditor.fontFamily || 'Arial', color: textEditor.color || '#000' }}
                 placeholder="Type here..."
               />
             )}
           </div>
 
-          {/* Right panel */}
-          <div
-            style={{
-              width: 220,
-              border: "1px solid #ddd",
-              borderRadius: 8,
-              background: "#fff",
-              padding: 10,
-              height: CANVAS_H + 2,
-            }}
-          >
-            <div style={{ fontSize: 12, color: "#555", marginBottom: 8 }}>Settings</div>
+          <aside className="ad-right" style={{ height: CANVAS_H + 2 }}>
+            <div className="ad-panelTitle">Settings</div>
 
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 12, marginBottom: 6 }}>Color</div>
+            <div className="ad-panelRow">
+              <div className="ad-panelLabel">Color</div>
               <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
             </div>
 
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 12, marginBottom: 6 }}>Size</div>
+            <div className="ad-panelRow">
+              <div className="ad-panelLabel">Size</div>
               <input type="range" min="1" max="30" value={size} onChange={(e) => setSize(+e.target.value)} />
-              <div style={{ fontSize: 12, color: "#666" }}>{size}px</div>
+              <div className="ad-sizeLabel">{size}px</div>
             </div>
 
-            <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 12, marginBottom: 6 }}>AI Mode</div>
-              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.35 }}>
-                AI affects <b>shapes</b> when drawing with pen tools.
-                <br />
-                Eraser/Text are not AI.
-              </div>
+            <div className="ad-panelNote">
+              AI affects <strong>shapes</strong> when drawing with pen tools. Eraser/Text are not AI.
             </div>
-
-            <div style={{ fontSize: 12, color: "#666", marginTop: 12 }}>
-              Shortcuts:
-              <br />
-              Ctrl+Z / Ctrl+Y
-              <br />
-              Delete to remove
-              <br />
-              Enter to finish text
-            </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>

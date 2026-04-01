@@ -1,8 +1,4 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getProfile } from "../utils/api";      
-
-<Route
-  path="/settings"
-  element={<ProtectedRoute><Settings /></ProtectedRoute>}
-/>
+// Settings page removed per design update. Keep file minimal to avoid route errors.
+export default function Settings() {
+  return null;
+}

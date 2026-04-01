@@ -11,6 +11,7 @@ export default function Toolbar(props) {
     onionOpacity, setOnionOpacity,
     fps, setFps, setPlaying,
     frames, activeIndex, setFrames, setSelectedId
+  , vertical = false
   } = props;
 
   const fileInputRef = useRef(null);
@@ -31,8 +32,16 @@ export default function Toolbar(props) {
     reader.readAsDataURL(file);
   };
 
+  const rootStyle = {
+    display: 'flex',
+    gap: 10,
+    flexWrap: vertical ? 'nowrap' : 'wrap',
+    alignItems: 'center',
+    flexDirection: vertical ? 'column' : 'row'
+  };
+
   return (
-    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+    <div style={rootStyle}>
       <button onClick={() => setToolMode("draw")} disabled={playing} style={{ fontWeight: toolMode==="draw" ? "bold" : "normal" }}>Draw</button>
       <button onClick={() => setToolMode("select")} disabled={playing} style={{ fontWeight: toolMode==="select" ? "bold" : "normal" }}>Select</button>
       <button onClick={() => setToolMode("cut")} disabled={playing} style={{ fontWeight: toolMode==="cut" ? "bold" : "normal" }}>Cut & Move</button>

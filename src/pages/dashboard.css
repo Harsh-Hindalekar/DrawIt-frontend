@@ -1,3 +1,31 @@
+.dashboard-root{ display:flex; min-height:100vh; font-family:Inter,system-ui,Arial; background:#f7f8fb }
+.dashboard-sidebar{ width:220px; background:#fff; padding:28px 18px; box-shadow: 2px 0 6px rgba(16,24,40,0.04) }
+.ds-brand{ font-weight:800; color:#a78bfa; font-size:20px; margin-bottom:18px }
+.ds-nav{ display:flex; flex-direction:column; gap:8px }
+.ds-link{ padding:12px 14px; border-radius:10px; color:#6b7280; text-decoration:none; font-weight:600 }
+.ds-link.active{ background:linear-gradient(90deg,#f3e8ff,#fff0f6); color:#7c3aed }
+
+.dashboard-main{ flex:1; padding:36px }
+.dm-header h1{ font-size:28px; margin:0 0 6px 0; color:#0f172a }
+.dm-sub{ color:#6b7280; margin:0 0 18px 0 }
+
+.dm-cards{ display:flex; gap:18px; margin-bottom:28px }
+.dm-card{ background:#fff; border-radius:12px; padding:20px; width:220px; box-shadow:0 12px 30px rgba(15,23,42,0.06); text-decoration:none; color:inherit }
+.dm-card h3{ margin:10px 0 6px 0 }
+.dm-card p{ margin:0; color:#6b7280; font-size:0.95rem }
+.dm-icon{ width:56px; height:56px; border-radius:50%; background:linear-gradient(180deg,#f3e8ff,#fff0f6); display:flex; align-items:center; justify-content:center }
+.dm-icon img{ width:28px; height:28px }
+
+.dm-recent{ margin-top:10px }
+.dm-sectionHead{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px }
+.dm-sectionHead h4{ margin:0; color:#7c3aed }
+.view-all{ color:#94a3b8; font-size:0.95rem }
+.dm-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:16px }
+.dm-thumb{ background:#fff; border-radius:10px; padding:18px; height:120px; box-shadow:0 6px 18px rgba(15,23,42,0.04); display:flex; flex-direction:column; justify-content:space-between }
+.dm-thumb.create{ border:2px dashed #e6e6f2; color:#6b7280; display:flex; align-items:center; justify-content:center; font-weight:700 }
+.dm-meta{ font-size:0.85rem; color:#6b7280; margin-top:8px; display:flex; justify-content:space-between }
+
+@media (max-width:900px){ .dashboard-root{ flex-direction:column } .dashboard-sidebar{ width:100%; display:flex; flex-direction:row; gap:12px; overflow:auto } .dm-cards{ flex-wrap:wrap } .dm-grid{ grid-template-columns: repeat(2,1fr) } }
 /* Page background */
 .dbWrap {
   min-height: 100vh;

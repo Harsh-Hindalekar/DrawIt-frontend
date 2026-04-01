@@ -1,90 +1,39 @@
-/* AiDrawing.css */
-.ai-page {
-  padding: 15px;
-  background: #49a6e9;
-  min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
-}
+/* AiDrawing UI styles: topbar, tool rail, swatches, canvas, right panel */
+.ad-viewport{min-height:100vh;background:#f8fafc;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+.ad-shell{width:100%;}
+.ad-topbar{display:flex;align-items:center;gap:16px;background:#fff;border-radius:12px;padding:12px 16px;box-shadow:0 10px 30px rgba(2,6,23,0.06);margin-bottom:14px}
+.ad-brand{font-weight:700;color:#7c3aed;margin-right:6px}
+.ad-top-controls{display:flex;align-items:center;gap:8px}
+.ad-right-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+.ad-btn{background:transparent;border:1px solid #e6eaf2;padding:8px 10px;border-radius:8px;cursor:pointer}
+.ad-btn:disabled{opacity:0.5;cursor:not-allowed}
+.ad-danger{border-color:#fee2e2;color:#b91c1c}
+.ad-primary{background:linear-gradient(90deg,#8b5cf6,#ec4899);color:#fff;padding:8px 12px;border-radius:10px;border:none;cursor:pointer}
+.ad-sep{width:1px;height:28px;background:#eef2ff;margin:0 6px}
+.ad-toggle{padding:8px 10px;border-radius:999px;border:1px solid #e6e6f2;background:#f3f4f6}
+.ad-toggle.on{background:linear-gradient(90deg,#8b5cf6,#ec4899);color:#fff;border:none}
 
-.ai-topbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fff;
-  padding: 10px 20px;
-  border: 3px solid #333;
-  border-radius: 15px;
-  margin-bottom: 15px;
-}
+.ad-main{display:flex;gap:14px}
+.ad-left{width:120px;background:#fff;border-radius:12px;padding:12px;border:1px solid #eef2ff;box-shadow:0 8px 24px rgba(2,6,23,0.04)}
+.ad-tools-title{font-size:12px;color:#6b7280;margin-bottom:8px}
+.ad-tools{display:flex;flex-direction:column;gap:8px}
+.ad-tool{padding:10px;border-radius:10px;border:1px solid #f1f5f9;background:#fff;text-align:center;cursor:pointer;font-weight:600;color:#374151}
+.ad-tool.active{background:linear-gradient(90deg,#f3e8ff,#fff0f6);color:#7c3aed}
+.ad-divider{height:1px;background:#f3f4f6;margin:12px 0}
+.ad-swatches{display:flex;flex-wrap:wrap;gap:10px;padding:6px 4px}
+.ad-swatch{width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 6px 18px rgba(2,6,23,0.05);cursor:pointer}
+.ad-slider-wrap{padding:8px}
+.ad-slider{width:100%}
 
-.ai-brand { font-size: 1.2rem; color: #357fe0; }
-.ai-divider { width: 2px; height: 24px; background: #ddd; }
-.ai-spacer { flex: 1; }
+.ad-canvasWrap{flex:1;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 36px rgba(2,6,23,0.06);position:relative}
+.ad-canvas{width:1000px;height:600px;border-radius:8px}
+.ad-textEditor{position:absolute;padding:8px;border:2px solid #7c3aed;background:rgba(255,255,255,0.95);resize:both}
 
-.ai-nav-btn {
-  padding: 6px 14px;
-  border: 2px solid #333;
-  border-radius: 8px;
-  background: #fff;
-  font-weight: 700;
-  cursor: pointer;
-}
+.ad-right{width:220px;background:#fff;border-radius:12px;padding:12px;border:1px solid #eef2ff;box-shadow:0 8px 24px rgba(2,6,23,0.04)}
+.ad-panelTitle{font-size:12px;color:#6b7280;margin-bottom:8px}
+.ad-panelRow{margin-bottom:12px}
+.ad-panelLabel{font-size:13px;color:#374151;margin-bottom:6px}
+.ad-sizeLabel{font-size:12px;color:#6b7280;margin-top:6px}
+.ad-panelNote{font-size:13px;color:#6b7280}
 
-.ai-nav-btn.ai-active-pill { background: #f7ce46; }
-.ai-nav-btn.ai-primary { background: #357fe0; color: #fff; }
-.ai-nav-btn.ai-danger { background: #ffcfcf; }
-
-.ai-workspace { display: flex; gap: 15px; height: 600px; }
-
-.ai-sidebar-left, .ai-sidebar-right {
-  width: 130px;
-  background: #fff;
-  border: 3px solid #333;
-  border-radius: 20px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.ai-sidebar-right { width: 180px; background: #b3e0ff; }
-
-.tool-group-label { font-size: 11px; font-weight: 900; text-transform: uppercase; color: #555; }
-.tool-btn {
-  padding: 8px;
-  border: 2px solid #333;
-  border-radius: 10px;
-  background: #fff;
-  font-weight: 700;
-  cursor: pointer;
-  text-align: left;
-}
-
-.tool-btn.active { background: #f7ce46; box-shadow: 2px 2px 0px #333; }
-
-.canvas-container {
-  flex: 1;
-  position: relative;
-  border: 4px solid #333;
-  border-radius: 20px;
-  background: #fff;
-  overflow: hidden;
-  height: 100%;
-}
-
-.main-canvas { width: 100%; height: 100%; display: block; }
-
-.canvas-text-editor {
-  position: absolute;
-  background: rgba(255,255,255,0.9);
-  border: 2px solid #357fe0;
-  border-radius: 5px;
-  padding: 5px;
-  outline: none;
-  resize: none;
-  overflow: hidden;
-}
-
-.color-picker { width: 100%; height: 40px; border: 2px solid #333; border-radius: 5px; cursor: pointer; }
-.divider-h { height: 2px; background: #333; margin: 10px 0; opacity: 0.2; }
-.setting-item label { font-size: 12px; font-weight: 800; display: block; margin-bottom: 4px; }
+@media (max-width:900px){.ad-main{flex-direction:column}.ad-left,.ad-right{width:100%}}
