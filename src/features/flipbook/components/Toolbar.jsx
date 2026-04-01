@@ -32,67 +32,39 @@ export default function Toolbar(props) {
     reader.readAsDataURL(file);
   };
 
-  const rootStyle = {
-    display: 'flex',
-    gap: 10,
-    flexWrap: vertical ? 'nowrap' : 'wrap',
-    alignItems: 'center',
-    flexDirection: vertical ? 'column' : 'row'
-  };
-
   return (
-    <div style={rootStyle}>
-      <button onClick={() => setToolMode("draw")} disabled={playing} style={{ fontWeight: toolMode==="draw" ? "bold" : "normal" }}>Draw</button>
-      <button onClick={() => setToolMode("select")} disabled={playing} style={{ fontWeight: toolMode==="select" ? "bold" : "normal" }}>Select</button>
-      <button onClick={() => setToolMode("cut")} disabled={playing} style={{ fontWeight: toolMode==="cut" ? "bold" : "normal" }}>Cut & Move</button>
+    <div className="fc-rail">
+      <div className="fc-rail-group">
+        <button className={`fc-rail-btn ${toolMode === 'select' ? 'active' : ''}`} onClick={() => setToolMode('select')} title="Select">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3l18 18" stroke="none"/></svg>
+        </button>
 
-      <label>
-        Brush:&nbsp;
-        <select value={brushTool} onChange={(e)=>setBrushTool(e.target.value)} disabled={playing || toolMode!=="draw"}>
-          <option value="pencil">Pencil</option>
-          <option value="eraser">Eraser</option>
-        </select>
-      </label>
+        <button className={`fc-rail-btn ${toolMode === 'draw' ? 'active' : ''}`} onClick={() => setToolMode('draw')} title="Draw">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 20c4 0 6-2 6-6 0-1 0-2 1-3l8-8 3 3-8 8c-1 1-2 1-3 1-4 0-6 2-6 6Z"/></svg>
+        </button>
 
-      <label>
-        Color:&nbsp;
-        <input type="color" value={color} onChange={(e)=>setColor(e.target.value)} disabled={playing || toolMode!=="draw" || brushTool==="eraser"} />
-      </label>
+        <button className={`fc-rail-btn ${toolMode === 'cut' ? 'active' : ''}`} onClick={() => setToolMode('cut')} title="Cut & Move">
+          ✂
+        </button>
 
-      <label>
-        Size:&nbsp;
-        <input type="range" min="1" max="30" value={size} onChange={(e)=>setSize(Number(e.target.value))} disabled={playing || toolMode!=="draw"} />
-        &nbsp;{size}
-      </label>
+        <button className="fc-rail-btn" onClick={() => { setToolMode('select'); setSelectedId(addRect(setFrames, activeIndex)); }} title="Add Rect">▭</button>
+        <button className="fc-rail-btn" onClick={() => { setToolMode('select'); setSelectedId(addCircle(setFrames, activeIndex)); }} title="Add Circle">◯</button>
+        <button className="fc-rail-btn" onClick={() => { setToolMode('select'); setSelectedId(addLine(setFrames, activeIndex)); }} title="Add Line">／</button>
 
-      <button onClick={() => undoFrame(setFrames, activeIndex)} disabled={playing || !(frames[activeIndex]?.undo?.length)}>Undo</button>
-      <button onClick={() => redoFrame(setFrames, activeIndex)} disabled={playing || !(frames[activeIndex]?.redo?.length)}>Redo</button>
+        <button className="fc-rail-btn" onClick={pickImage} title="Add Image">🖼️</button>
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: "none" }} />
+      </div>
 
-      <button onClick={() => { setToolMode("select"); setSelectedId(addRect(setFrames, activeIndex)); }} disabled={playing}>+ Rect</button>
-      <button onClick={() => { setToolMode("select"); setSelectedId(addCircle(setFrames, activeIndex)); }} disabled={playing}>+ Circle</button>
-      <button onClick={() => { setToolMode("select"); setSelectedId(addLine(setFrames, activeIndex)); }} disabled={playing}>+ Line</button>
+      <div className="fc-rail-group">
+        <button className="fc-rail-btn" onClick={() => undoFrame(setFrames, activeIndex)} title="Undo">↺</button>
+        <button className="fc-rail-btn" onClick={() => redoFrame(setFrames, activeIndex)} title="Redo">↻</button>
+      </div>
 
-      <button onClick={pickImage} disabled={playing}>+ Image</button>
-      <input ref={fileInputRef} type="file" accept="image/*" onChange={onPickImage} style={{ display: "none" }} />
-
-      <label style={{ display:"flex", gap:6, alignItems:"center" }}>
-        <input type="checkbox" checked={onionSkin} onChange={(e)=>setOnionSkin(e.target.checked)} disabled={playing} />
-        Onion
-      </label>
-      {onionSkin && (
-        <label>
-          Opacity:&nbsp;
-          <input type="range" min="0" max="0.9" step="0.05" value={onionOpacity} onChange={(e)=>setOnionOpacity(Number(e.target.value))} disabled={playing} />
-          &nbsp;{onionOpacity.toFixed(2)}
-        </label>
-      )}
-
-      <div style={{ marginLeft:"auto", display:"flex", gap:10, alignItems:"center" }}>
-        <label>
-          FPS:&nbsp;
-          <input type="number" min="1" max="24" value={fps} onChange={(e)=>setFps(Number(e.target.value))} style={{ width: 64 }} />
-        </label>
-        <button onClick={() => setPlaying(p => !p)}>{playing ? "Pause" : "Play"}</button>
+      <div className="fc-rail-bottom">
+        <div className={`fc-onion ${onionSkin ? 'enabled' : ''}`} onClick={() => setOnionSkin(s => !s)} title="Onion Skin">
+          <div className="fc-onion-label">Onion</div>
+        </div>
+        <div className="fc-size-display">{size}px</div>
       </div>
     </div>
   );

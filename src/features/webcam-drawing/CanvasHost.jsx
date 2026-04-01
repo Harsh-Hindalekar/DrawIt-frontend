@@ -59,6 +59,7 @@ export default function GestureCanvas() {
 
   const [colorUI, setColorUI] = useState("#111111");
   const [brushUI, setBrushUI] = useState(6);
+  const [cameraOn, setCameraOn] = useState(true);
 
   // ---- live refs (NO re-render spam) ----
   const toolRef = useRef("brush");
@@ -76,6 +77,7 @@ export default function GestureCanvas() {
   const smoothPosRef = useRef(null); // Added for exponential smoothing
   const fistStartRef = useRef(null);
   const lastSaveRef = useRef(0);
+  const drawingPointerRef = useRef(false);
 
   // throttle status updates
   const lastStatusRef = useRef({ text: "", t: 0 });
@@ -121,11 +123,100 @@ export default function GestureCanvas() {
     link.click();
   }
 
+  function exportDrawing() {
+    // alias for now — future: export SVG/transparent PNG
+    saveDrawing();
+  }
+
   function clearDrawing() {
     const c = drawCanvasRef.current;
     if (!c) return;
     const ctx = c.getContext("2d");
     if (ctx) clearCanvasFull(ctx, c);
+    prevPosRef.current = null;
+  }
+
+  // Pointer (mouse/touch) drawing handlers so pointer input still works
+  function getPointerPos(evt, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (evt.clientX - rect.left);
+    const y = (evt.clientY - rect.top);
+    return { x, y };
+  }
+
+  function pointerStart(e) {
+    const c = drawCanvasRef.current;
+    if (!c) return;
+    drawingPointerRef.current = true;
+    c.setPointerCapture?.(e.pointerId);
+    const pos = getPointerPos(e, c);
+    prevPosRef.current = pos;
+    // draw a dot immediately
+    const ctx = c.getContext("2d");
+    if (ctx) {
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = brushRef.current;
+      if (toolRef.current === "eraser") {
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.strokeStyle = "rgba(0,0,0,1)";
+        ctx.fillStyle = ctx.strokeStyle;
+      } else {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = colorRef.current;
+        ctx.fillStyle = ctx.strokeStyle;
+      }
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, brushRef.current / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function pointerMove(e) {
+    if (!drawingPointerRef.current) return;
+    const c = drawCanvasRef.current;
+    if (!c) return;
+    const pos = getPointerPos(e, c);
+    const prev = prevPosRef.current;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = brushRef.current;
+    if (toolRef.current === "eraser") {
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.strokeStyle = "rgba(0,0,0,1)";
+      ctx.fillStyle = ctx.strokeStyle;
+    } else {
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = colorRef.current;
+      ctx.fillStyle = ctx.strokeStyle;
+    }
+    if (prev) {
+      const dx = pos.x - prev.x;
+      const dy = pos.y - prev.y;
+      const dist = Math.hypot(dx, dy);
+      const maxStep = Math.max(2, brushRef.current * 1.2);
+      const steps = Math.min(16, Math.ceil(dist / maxStep));
+      ctx.beginPath();
+      ctx.moveTo(prev.x, prev.y);
+      for (let i = 1; i <= steps; i++) {
+        const tseg = i / steps;
+        ctx.lineTo(prev.x + dx * tseg, prev.y + dy * tseg);
+      }
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, brushRef.current / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    prevPosRef.current = pos;
+  }
+
+  function pointerEnd(e) {
+    const c = drawCanvasRef.current;
+    if (c) c.releasePointerCapture?.(e.pointerId);
+    drawingPointerRef.current = false;
     prevPosRef.current = null;
   }
 
@@ -350,19 +441,37 @@ export default function GestureCanvas() {
       height: baseH,
     });
 
-    camera.start().catch((err) => {
-      console.error("Camera start failed:", err);
-      setStatusSafe("Camera start failed");
-    });
-
     cameraRef.current = camera;
     handsRef.current = hands;
+
+    // start camera only if enabled
+    if (cameraOn) {
+      camera.start().catch((err) => {
+        console.error("Camera start failed:", err);
+        setStatusSafe("Camera start failed");
+      });
+    }
 
     return () => {
       try { camera.stop(); } catch { }
       try { hands.close(); } catch { }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameraOn]);
+
+  // Attach pointer listeners to draw canvas so mouse/touch drawing works
+  useEffect(() => {
+    const c = drawCanvasRef.current;
+    if (!c) return;
+    c.style.touchAction = "none";
+    c.addEventListener("pointerdown", pointerStart);
+    window.addEventListener("pointermove", pointerMove);
+    window.addEventListener("pointerup", pointerEnd);
+    return () => {
+      c.removeEventListener("pointerdown", pointerStart);
+      window.removeEventListener("pointermove", pointerMove);
+      window.removeEventListener("pointerup", pointerEnd);
+    };
   }, []);
 
   const currentColor = useMemo(() => colorUI, [colorUI]);
@@ -417,9 +526,51 @@ export default function GestureCanvas() {
         <button className="gc-btn" onClick={saveDrawing}>
           <Icon>{Icons.save}</Icon> Save
         </button>
+        <button className="gc-btn" onClick={exportDrawing} style={{background:'linear-gradient(180deg,#8b5cf6,#d946ef)',color:'#fff'}}>
+          Export
+        </button>
         <button className="gc-btn danger" onClick={clearDrawing}>
           <Icon>{Icons.trash}</Icon> Clear
         </button>
+      </div>
+
+      {/* Top-right floating controls */}
+      <div className="gc-topRight">
+        <button className="gc-swatch" title="Current color" onClick={() => {/* future: open palette */}} style={{background: colorUI, boxShadow:'0 6px 20px rgba(139,92,246,0.12)'}} />
+        <div className="gc-topActions">
+          <button className="gc-small gc-shadow" onClick={saveDrawing}>Save</button>
+          <button className="gc-small gc-primary" onClick={exportDrawing}>Export</button>
+        </div>
+      </div>
+
+      {/* LEFT TOOL RAIL */}
+      <div className="gc-left">
+        <div>
+          <button className={`gc-rail-btn ${tool === "brush" ? "active" : ""}`} onClick={() => setTool("brush")}>
+            <Icon>{Icons.brush}</Icon>
+          </button>
+          <button className={`gc-rail-btn ${tool === "eraser" ? "active" : ""}`} onClick={() => setTool("eraser")}>
+            <Icon>{Icons.eraser}</Icon>
+          </button>
+          <button className={`gc-rail-btn ${cameraOn ? "active" : ""}`} onClick={() => {
+            setCameraOn((v) => !v);
+            const cam = cameraRef.current;
+            if (cam) {
+              if (!cameraOn) cam.start().catch(() => setStatusSafe("Camera start failed"));
+              else cam.stop();
+            }
+          }} title="Toggle Camera (gestures)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M23 7l-6 0-2-3-2 3-6 0a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2z" />
+            </svg>
+          </button>
+          <button className="gc-rail-btn" onClick={() => clearDrawing()} title="Clear">
+            <Icon>{Icons.trash}</Icon>
+          </button>
+        </div>
+        <div style={{marginTop:12}}>
+          <div className="gc-rail-size">{brushUI}px</div>
+        </div>
       </div>
 
       {/* CANVAS AREA */}
@@ -439,7 +590,25 @@ export default function GestureCanvas() {
           </div>
 
           <div className="gc-help">
-            <b>Gestures:</b> Point = draw • Open palm = pause • ✌️ = save • Fist hold (1.8s) = clear
+            <b>Gestures:</b> Point = draw • Open palm = pause • Peace = save • Fist hold (1.8s) = clear
+          </div>
+        </div>
+      </div>
+
+      {/* Right floating Layers panel */}
+      <div className="gc-layers">
+        <div className="gl-header">
+          <strong>Layers</strong>
+          <button className="gl-add">+</button>
+        </div>
+        <div className="gl-body">
+          <div className="gl-item gl-active">
+            <div className="gl-item-title">Layer 1</div>
+            <input type="range" min="0" max="100" defaultValue="100" />
+          </div>
+          <div className="gl-item">
+            <div className="gl-item-title">Background</div>
+            <input type="range" min="0" max="100" defaultValue="100" />
           </div>
         </div>
       </div>
