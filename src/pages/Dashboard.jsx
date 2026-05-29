@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getProfile } from "../utils/api";
-import "./Dashboard.css";
+import "./dashboard.css";
 
 import airImg from "../assets/air1.png";
 import smartImg from "../assets/smart.png";
